@@ -16,6 +16,7 @@ using namespace std;
  * On success, cpu::init() should not return to the caller.
  */
 void cpu::init(thread_startfunc_t func, void *arg){
+	//TODO: add guard stuff
 	while(1){
 		if(func){
 			thread temp(func, arg);

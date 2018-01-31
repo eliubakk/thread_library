@@ -9,6 +9,7 @@
 *.out
 app
 test_no_thread
+test_p1
 
 # Packages #
 ############

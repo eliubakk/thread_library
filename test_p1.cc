@@ -4,7 +4,6 @@
 #include <string>
 #include "thread.h"
 #include "mutex.h"
-#include "disk.h"
 
 
 size_t maxRequests;
@@ -50,7 +49,6 @@ void service(void *maxReqs) {
         int requestRequesterNum = requests[indexOfClosest].second;
         lastTrack = requestValue;
         requests.erase(requests.begin() + indexOfClosest);
-        print_service(requestRequesterNum, requestValue);
         requestIsBeingServiced[requestRequesterNum] = false;
         requestCVs[requestRequesterNum].signal();
         requestsMutex.unlock();
@@ -73,7 +71,6 @@ void request(void *args) {
         }
         requests.push_back(trackAndRequester);
         requestIsBeingServiced[requestArgs.requesterNum] = true;
-        print_request(requestArgs.requesterNum, track);
         
         if (requests.size() == std::min(activeThreads, maxRequests)) {
             servicerCV.signal();
@@ -121,7 +118,7 @@ void diskScheduler(void *arguments) {
 int main(int argc, const char **argv) {
     commandLineArgs arguments = {argc, argv};
     maxRequests = atoi(argv[1]);
-    cpu::boot(diskScheduler, &arguments, 0);
+    cpu::boot(4, diskScheduler, &arguments, 0, 1, 0);
     return 0;
 }
 
