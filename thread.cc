@@ -2,6 +2,7 @@
 #include "thread_impl.h"
 #include "thread_globals.h"
 #include <cassert>
+#include <ucontext.h>
 
 using namespace std;
 
