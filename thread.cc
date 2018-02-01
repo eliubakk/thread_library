@@ -14,7 +14,7 @@ thread::thread(thread_startfunc_t func, void *arg){
 	impl_ptr->context->uc_stack.ss_flags = 0;
 	impl_ptr->context->uc_link = nullptr;
 
-	makecontext(impl_ptr, func, 1, arg);
+	makecontext(impl_ptr->context, (void (*)())func, 1, arg);
 	thread_ready_queue.push(impl_ptr);
 
 } // create a new thread
