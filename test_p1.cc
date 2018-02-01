@@ -109,16 +109,16 @@ void diskScheduler(void *arguments) {
     }
     
     for (int i = 2; i < args.argc; ++i) {
-        thread requester (request, &requestArguments[i-2]);
+        thread requester ((thread_startfunc_t)request, &requestArguments[i-2]);
     }
     
-    thread servicer (service, &args.argc);
+    thread servicer ((thread_startfunc_t)service, &args.argc);
 }
 
 int main(int argc, const char **argv) {
     commandLineArgs arguments = {argc, argv};
     maxRequests = atoi(argv[1]);
-    cpu::boot(4, diskScheduler, &arguments, 0, 1, 0);
+    cpu::boot(4, (thread_startfunc_t)diskScheduler, &arguments, 0, 1, 0);
     return 0;
 }
 
