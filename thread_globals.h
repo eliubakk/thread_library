@@ -6,7 +6,7 @@
 #include "cpu.h"
 
 extern std::queue<thread::impl*> thread_ready_queue;
-extern std::queue<cpu::impl*> cpu_suspended_queue;
+extern std::queue<cpu*> cpu_suspended_queue;
 
 
 #endif
