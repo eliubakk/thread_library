@@ -1,2 +1,2 @@
-test_no_thread.cc
+test_single_yield.cc
 test_p1.cc
