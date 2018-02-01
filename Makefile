@@ -44,7 +44,8 @@ alltests: clean $(TESTS)
 thread_globals.o: thread_globals.h thread_globals.cc
 cpu_impl.o: cpu_impl.h cpu_impl.cc
 thread_impl.o: thread_impl.h thread_impl.cc
-cpu.o: thread_globals.o thread_impl.o cpu_impl.o cpu.h cpu.cc
+thread.o: cpu_impl.o thread_impl.o thread.h thread.cc
+cpu.o: thread_globals.o thread_impl.o cpu_impl.o thread.o cpu.h cpu.cc
 
 clean: 
 	rm -f $(OBJECTS) $(EXECUTABLE) $(TESTS)

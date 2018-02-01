@@ -2,6 +2,7 @@
 #include "thread_impl.h"
 #include "thread_globals.h"
 #include "cpu.h"
+#include "cpu_impl.h"
 #include <cassert>
 #include <ucontext.h>
 
@@ -36,8 +37,10 @@ void thread::join(){
 }                        // wait for this thread to finish
 
 void thread::yield(){
-	thread_ready_queue.push(impl_ptr);
-	swapcontext(impl_ptr->context, impl_ptr->context->uc_link);
+	//thread_ready_queue.push(impl_ptr);
+	ucontext_t * context = nullptr;
+	getcontext(context);
+	swapcontext(context, cpu::self()->impl_ptr->context);
 }                // yield the CPU
 
 /*

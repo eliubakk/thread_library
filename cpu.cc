@@ -27,6 +27,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 			thread_ready_queue.pop();
 			curr_thread->context->uc_link = impl_ptr->context;
 			swapcontext(impl_ptr->context, curr_thread->context);
+			thread_ready_queue.push(curr_thread);
 		}else{
 			cpu_suspended_queue.push(this);
 			cpu::interrupt_enable_suspend();
