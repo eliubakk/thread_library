@@ -14,6 +14,7 @@ sftp-config.json
 app
 test_no_thread
 test_p1
+sftp-config
 
 # Packages #
 ############
