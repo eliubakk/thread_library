@@ -1,6 +1,7 @@
 #include "thread.h"
 #include "thread_impl.h"
 #include "thread_globals.h"
+#include "cpu.h"
 #include <cassert>
 #include <ucontext.h>
 
@@ -16,6 +17,14 @@ thread::thread(thread_startfunc_t func, void *arg){
 
 	makecontext(impl_ptr, func, 1, arg);
 	thread_ready_queue.push(impl_ptr);
+	if (cpu_suspended_queue.empty()) {
+
+	}
+	else {
+		cpu *curr_cpu = cpu_suspended_queue.front();
+		cpu_suspended_queue.pop();
+		curr_cpu->interrupt_send();
+	}
 
 } // create a new thread
 thread::~thread(){
@@ -27,7 +36,8 @@ void thread::join(){
 }                        // wait for this thread to finish
 
 void thread::yield(){
-	assert(false);
+	thread_ready_queue.push(impl_ptr);
+	swapcontext(impl_ptr->context, impl_ptr->context->uc_link);
 }                // yield the CPU
 
 /*
