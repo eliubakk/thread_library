@@ -9,19 +9,9 @@
 using namespace std;
 
 thread::thread(thread_startfunc_t func, void *arg){
-	impl_ptr = new impl(); 
-	char *stack = new char [STACK_SIZE];
-	impl_ptr->context->uc_stack.ss_sp = stack;
-	impl_ptr->context->uc_stack.ss_size = STACK_SIZE;
-	impl_ptr->context->uc_stack.ss_flags = 0;
-	impl_ptr->context->uc_link = nullptr;
-
-	makecontext(impl_ptr->context, (void (*)())func, 1, arg);
+	impl_ptr = new impl(func, arg); 
 	thread_ready_queue.push(impl_ptr);
-	if (cpu_suspended_queue.empty()) {
-
-	}
-	else {
+	if (!cpu_suspended_queue.empty()) {
 		cpu *curr_cpu = cpu_suspended_queue.front();
 		cpu_suspended_queue.pop();
 		curr_cpu->interrupt_send();
@@ -29,7 +19,7 @@ thread::thread(thread_startfunc_t func, void *arg){
 
 } // create a new thread
 thread::~thread(){
-	assert(false);
+	//assert(false);
 }
 
 void thread::join(){
@@ -38,8 +28,10 @@ void thread::join(){
 
 void thread::yield(){
 	//thread_ready_queue.push(impl_ptr);
-	ucontext_t * context = nullptr;
+	ucontext_t * context = new ucontext_t();
 	getcontext(context);
+	cpu::self()->impl_ptr->yielded = true;
+	cpu::self()->impl_ptr->yielded_context = context;
 	swapcontext(context, cpu::self()->impl_ptr->context);
 }                // yield the CPU
 

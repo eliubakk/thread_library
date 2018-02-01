@@ -1,5 +1,12 @@
 #include "cpu_impl.h"
+#include <cassert>
 
 cpu::impl::impl(){
-	getcontext(context);
+	context = new ucontext_t();
+	assert(!getcontext(context));
+	yielded = false;
+}
+
+cpu::impl::~impl(){
+	delete context;
 }

@@ -6,7 +6,8 @@
 
 class thread::impl{
 	public:
-		impl();
+		impl(thread_startfunc_t, void *);
+		~impl();
 		ucontext_t* context;
 };
 

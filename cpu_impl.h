@@ -7,7 +7,10 @@
 class cpu::impl{
 	public:
 		impl();
+		~impl();
 		ucontext_t* context;
+		bool yielded;
+		ucontext_t* yielded_context;
 };
 
 #endif
