@@ -18,7 +18,10 @@ using namespace std;
 void cpu::init(thread_startfunc_t func, void *arg){
 	impl_ptr = new impl();
 	//TODO: add guard stuff
+	//TODO: determine if vector table is before or inside the while loop
 	while(1){
+		interrupt_vector_table[0] = (interrupt_handler_t) func;
+		interrupt_vector_table[1] = (interrupt_handler_t) func;
 		if(func != nullptr){
 			thread temp(func, arg);
 			func = nullptr;

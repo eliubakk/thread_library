@@ -1,2 +1,3 @@
 test_single_yield.cc
 test_p1.cc
+test_join.cc
