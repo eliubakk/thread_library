@@ -9,7 +9,7 @@ void test_parent_thread(void *a){
 	cout << *arg << endl;
 	thread t1((thread_startfunc_t)test_child_thread, a);
 	cout << "parent works!" << endl;
-	t1.yield();
+	thread::yield();
 	cout << "parent continues!" << endl;
 }
 
