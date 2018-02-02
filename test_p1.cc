@@ -1,124 +1,114 @@
 #include <iostream>
+#include <deque>
 #include <vector>
 #include <fstream>
-#include <string>
+#include <stdlib.h>
+#include <climits>
 #include "thread.h"
-#include "mutex.h"
+#include <algorithm>
 
+using namespace std;
 
-size_t maxRequests;
-size_t activeThreads;
-std::vector<std::pair<int, int>> requests;
-std::vector<cv> requestCVs;
-std::vector<bool> requestIsBeingServiced;
-mutex requestsMutex;
-cv servicerCV;
-
-struct commandLineArgs {
-    int argc;
-    const char **argv;
+struct disk_struct{
+    int requester;
+    int track;
 };
 
-struct requesterArgs {
-    int requesterNum;
-    const char *inputFile;
-};
+mutex mutex1, mutex2;
+cv cv1, cv2;
+int max_size;
+int total_pushed = 0;
+int num_tracks = 0;
+int tracks_in_q = 0;
+int last_track = 0;
+int active_requester;
+vector<deque<int>> deque_request;
+vector<disk_struct>work_queue;
+vector<int>vec_int;
+vector<int>vec_active;
+vector<cv *>vec_cv;
+vector<bool>vec_done;
 
-std::vector<requesterArgs> requestArguments;
 
-void service(void *maxReqs) {
-    int lastTrack = 0;
-    
-    while (true) {
-        requestsMutex.lock();
-        if (activeThreads == 0) {break;}
-        
-        while (requests.size() != std::min(activeThreads, maxRequests)) {
-            servicerCV.wait(requestsMutex);
-        }
-        
-        int distOfClosest = 1000, indexOfClosest = 0;
-        for (int i = 0; i < int(requests.size()); ++i) {
-            if (std::abs(lastTrack - requests[i].first) < distOfClosest) {
-                distOfClosest = std::abs(lastTrack - requests[i].first);
-                indexOfClosest = i;
+void disk_request(void *a){
+    int *arg = (int*)a;
+    int i = 0;
+    mutex1.lock();
+    while(i < (int) deque_request[*arg].size()){
+        while (tracks_in_q >= max_size || !vec_done[*arg]){
+            vec_cv[*arg]->wait(mutex1);
+        }        
+        disk_struct d1;
+        d1.requester = *arg;
+        d1.track = deque_request[*arg][i];
+        work_queue.push_back(d1);
+        ++total_pushed;
+        ++tracks_in_q;
+        vec_done[*arg] = false;
+        cv1.signal();
+        ++i;
+    }
+    mutex1.unlock();
+}
+
+void disk_service(void *a){
+    int request_done = 0;
+    mutex1.lock();
+    while (request_done != num_tracks){
+        while (tracks_in_q != min(max_size, active_requester)){
+            cv1.wait(mutex1); 
+        }        
+        int lowest = INT_MAX;
+        int position = 0;
+        for (int i = 0; i < (int) work_queue.size(); ++i){
+            if (abs(last_track - work_queue[i].track) < lowest){
+                lowest = abs(last_track - work_queue[i].track);
+                position = i;
             }
         }
-        
-        int requestValue = requests[indexOfClosest].first;
-        int requestRequesterNum = requests[indexOfClosest].second;
-        lastTrack = requestValue;
-        requests.erase(requests.begin() + indexOfClosest);
-        requestIsBeingServiced[requestRequesterNum] = false;
-        requestCVs[requestRequesterNum].signal();
-        requestsMutex.unlock();
-        
-        if (activeThreads == 0) {break;}
-    }
-}
+        --vec_active[work_queue[position].requester];
+        vec_done[work_queue[position].requester] = true;
+        if (vec_active[work_queue[position].requester] == 0){
+            --active_requester;
+        }
+        last_track = work_queue[position].track;
+        vec_cv[work_queue[position].requester]->signal();
 
-void request(void *args) {
-    requesterArgs requestArgs = *(requesterArgs *) args;
-    std::string diskName(requestArgs.inputFile);
-    std::ifstream inputData(diskName);
-    int track;
-    
-    while (inputData >> track) {
-        std::pair<int, int> trackAndRequester = std::make_pair(track, requestArgs.requesterNum);
-        requestsMutex.lock();
-        while (requests.size() >= std::min(activeThreads, maxRequests)) {
-            requestCVs[requestArgs.requesterNum].wait(requestsMutex);
-        }
-        requests.push_back(trackAndRequester);
-        requestIsBeingServiced[requestArgs.requesterNum] = true;
-        
-        if (requests.size() == std::min(activeThreads, maxRequests)) {
-            servicerCV.signal();
-        }
-        
-        while (requestIsBeingServiced[requestArgs.requesterNum] == true) {
-            requestCVs[requestArgs.requesterNum].wait(requestsMutex);
-        }
-        
-        requestsMutex.unlock();
-    }
-    
-    requestsMutex.lock();
-    activeThreads -= 1;
-    if (requests.size() == std::min(activeThreads, maxRequests) and activeThreads != 0) {
-        servicerCV.signal();
-    }
-    else if (activeThreads != 0) {
-        for (int i = 0; i < int(requestCVs.size()); ++i) {
-            requestCVs[i].signal();
+        work_queue.erase(work_queue.begin() + position);
+        ++request_done;
+        --tracks_in_q;
+        for (int i = 0; i < (int)vec_cv.size(); ++i){
+            vec_cv[i]->signal();
         }
     }
-    requestsMutex.unlock();
+    mutex1.unlock();
 }
 
-
-void diskScheduler(void *arguments) {
-    commandLineArgs args = *(commandLineArgs *) arguments;
-    activeThreads = args.argc - 2;
-    
-    for (int i = 2; i < args.argc; ++i) {
-        requesterArgs requestArgs = {i-2, args.argv[i]};
-        requestArguments.push_back(requestArgs);
-        requestCVs.push_back(cv());
-        requestIsBeingServiced.push_back(false);
+void disk_main(void *a){
+    int i = 0;
+    while(i < (int) deque_request.size()){
+        thread t1 ((thread_startfunc_t) disk_request, (void *) &vec_int[i]);
+        ++i;
     }
-    
-    for (int i = 2; i < args.argc; ++i) {
-        thread requester ((thread_startfunc_t)request, &requestArguments[i-2]);
+    thread t1 ((thread_startfunc_t) disk_service, (void *) 100);
+}
+
+int main(){
+    max_size = 3;
+    for (int i = 2; i < 6; ++i){
+        deque<int>temp;
+        vec_active.push_back(0);
+        for(int j = 0; j < 5; ++j){
+            ++vec_active[i - 2];
+            temp.push_back(j);
+            ++num_tracks;
+        }
+        deque_request.push_back(temp);
+        vec_int.push_back(i - 2);
+        vec_done.push_back(true);
+        vec_cv.push_back(new cv());
     }
-    
-    thread servicer ((thread_startfunc_t)service, &args.argc);
+    active_requester = 4;
+    int num = 10;
+    cpu::boot(3, (thread_startfunc_t)test_parent_thread ,(void *)&num, 0, 0, 0);
 }
-
-int main(int argc, const char **argv) {
-    commandLineArgs arguments = {argc, argv};
-    maxRequests = atoi(argv[1]);
-    cpu::boot(4, (thread_startfunc_t)diskScheduler, &arguments, 0, 1, 0);
-    return 0;
-}
-
