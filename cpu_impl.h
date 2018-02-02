@@ -10,7 +10,7 @@ class cpu::impl{
 		impl();
 		~impl();
 		ucontext_t* context;
-		ucontext_t* join_context;
+		ucontext_t* joined_context;
 		thread::impl* thread_to_join;
 		ucontext_t* yielded_context;
 };

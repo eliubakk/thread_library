@@ -27,6 +27,7 @@ void thread::join(){
 		ucontext_t * context = new ucontext_t();
 		getcontext(context);
 		cpu::self()->impl_ptr->joined_context = context;
+		cpu::self()->impl_ptr->thread_to_join = impl_ptr;
 		swapcontext(context, cpu::self()->impl_ptr->context);
 	}
 }                        // wait for this thread to finish

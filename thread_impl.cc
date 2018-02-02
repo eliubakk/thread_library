@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include "cpu_impl.h"
 
-thread::impl::impl(thread_startfunc_t func, void *arg) : thread_join_queue(0) {
+thread::impl::impl(thread_startfunc_t func, void *arg) {
 	context = new ucontext_t();
 	getcontext(context);
 	char *stack = new char [STACK_SIZE];

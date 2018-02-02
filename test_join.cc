@@ -2,6 +2,8 @@
 #include <iostream>
 using namespace std;
 void test_child_thread(void *a){
+	cout << "child start!" << endl;
+	thread::yield();
 	cout << "child is done!" << endl;
 }
 void test_parent_thread(void *a){
