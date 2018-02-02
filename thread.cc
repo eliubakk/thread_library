@@ -10,34 +10,29 @@ using namespace std;
 
 thread::thread(thread_startfunc_t func, void *arg){
 	impl_ptr = new impl(func, arg); 
-	thread_ready_queue.push(impl_ptr);
-	if (!cpu_suspended_queue.empty()) {
-		cpu *curr_cpu = cpu_suspended_queue.front();
-		cpu_suspended_queue.pop();
-		curr_cpu->interrupt_send();
-	}
-
+	thread_ready_queue_push(impl_ptr);
 } // create a new thread
+
 thread::~thread(){
 	//assert(false);
 }
 
 void thread::join(){
+	cpu::interrupt_disable();
 	if (impl_ptr) {
-		ucontext_t * context = new ucontext_t();
-		getcontext(context);
-		cpu::self()->impl_ptr->joined_context = context;
-		cpu::self()->impl_ptr->thread_to_join = impl_ptr;
-		swapcontext(context, cpu::self()->impl_ptr->context);
+		impl_ptr->thread_join_queue.push(cpu::self()->impl_ptr->running_thread);
+		swapcontext(cpu::self()->impl_ptr->running_thread->context,
+					cpu::self()->impl_ptr->context);
 	}
+	cpu::interrupt_enable();
 }                        // wait for this thread to finish
 
 void thread::yield(){
-	//thread_ready_queue.push(impl_ptr);
-	ucontext_t * context = new ucontext_t();
-	getcontext(context);
-	cpu::self()->impl_ptr->yielded_context = context;
-	swapcontext(context, cpu::self()->impl_ptr->context);
+	cpu::interrupt_disable();
+	cpu::self()->impl_ptr->yielded = true;
+	swapcontext(cpu::self()->impl_ptr->running_thread->context,
+				cpu::self()->impl_ptr->context);
+	cpu::interrupt_enable();
 }                // yield the CPU
 
 /*

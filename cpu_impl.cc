@@ -1,20 +1,30 @@
 #include "cpu_impl.h"
+#include "thread_globals.h"
 #include <cassert>
+#include <iostream>
+
+using namespace std;
 
 cpu::impl::impl(){
 	context = new ucontext_t();
 	assert(!getcontext(context));
-	joined_context = nullptr;
-	thread_to_join = nullptr;
+	running_thread = nullptr;
+	yielded = false;
+	finished = false;
 }
 
 cpu::impl::~impl(){
 	delete context;
 }
 
-void cpu::impl::interrupt_ipi_handler(){
-	//TODO: implement
+void cpu::impl::ipi_handler(){
+	//TODO: Decide wtf to do here
+	cout << "in ipi_handler" << endl;
 }
-void cpu::impl::interupt_timer_handler(){
-	//TODO: implement
+
+void cpu::impl::timer_handler(){
+	cpu::interrupt_disable();
+	swapcontext(cpu::self()->impl_ptr->running_thread->context,
+				cpu::self()->impl_ptr->context);
+	cpu::interrupt_enable();
 }

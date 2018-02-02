@@ -11,6 +11,8 @@ class thread::impl{
 		~impl();
 		ucontext_t* context;
 		std::queue<thread::impl*> thread_join_queue;
+
+		static void thread_wrapper(thread_startfunc_t, void*);
 };
 
 #endif

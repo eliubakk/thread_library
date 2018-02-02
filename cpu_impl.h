@@ -11,11 +11,11 @@ class cpu::impl{
 		impl();
 		~impl();
 		ucontext_t* context;
-		ucontext_t* joined_context;
-		thread::impl* thread_to_join;
-		ucontext_t* yielded_context;
-		static void interrupt_ipi_handler();
-		static void interrupt_timer_handler();
+		thread::impl* running_thread;
+		bool yielded;
+		bool finished;
+		static void ipi_handler();
+		static void timer_handler();
 };
 
 #endif
