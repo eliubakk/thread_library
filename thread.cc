@@ -23,14 +23,18 @@ thread::~thread(){
 }
 
 void thread::join(){
-	assert(false);
+	if (impl_ptr) {
+		ucontext_t * context = new ucontext_t();
+		getcontext(context);
+		cpu::self()->impl_ptr->joined_context = context;
+		swapcontext(context, cpu::self()->impl_ptr->context);
+	}
 }                        // wait for this thread to finish
 
 void thread::yield(){
 	//thread_ready_queue.push(impl_ptr);
 	ucontext_t * context = new ucontext_t();
 	getcontext(context);
-	cpu::self()->impl_ptr->yielded = true;
 	cpu::self()->impl_ptr->yielded_context = context;
 	swapcontext(context, cpu::self()->impl_ptr->context);
 }                // yield the CPU

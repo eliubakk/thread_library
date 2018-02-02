@@ -4,7 +4,8 @@
 cpu::impl::impl(){
 	context = new ucontext_t();
 	assert(!getcontext(context));
-	yielded = false;
+	join_context = nullptr;
+	thread_to_join = nullptr;
 }
 
 cpu::impl::~impl(){
