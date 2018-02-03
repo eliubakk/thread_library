@@ -24,6 +24,7 @@ void cpu::impl::ipi_handler(){
 
 void cpu::impl::timer_handler(){
 	cpu::interrupt_disable();
+	cpu::self()->impl_ptr->yielded = true;
 	swapcontext(cpu::self()->impl_ptr->running_thread->context,
 				cpu::self()->impl_ptr->context);
 	cpu::interrupt_enable();
