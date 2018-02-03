@@ -40,6 +40,6 @@ int main(){
         vec_bool.push_back(false);
         vec_num.push_back(i);
     }
-    cpu::boot((thread_startfunc_t) test_parent_thread, (void *) &num, 0,0,0);
+    cpu::boot(1, (thread_startfunc_t) test_parent_thread, (void *) &num, false, false, 0);
     return 0;
 }

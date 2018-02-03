@@ -1,22 +1,46 @@
 #include "mutex.h"
+#include "mutex_impl.h"
+#include "cpu.h"
+#include "cpu_impl.h"
 #include <cassert>
+#include <stdexcept>
 
 using namespace std;
 
 mutex::mutex(){
-    assert(false);
+    impl_ptr = new impl();
 }
 
 mutex::~mutex(){
-    assert(false);
+    delete impl_ptr;
 }
 
 void mutex::lock(){
-    assert(false);
+    cpu::interrupt_disable();
+    if(impl_ptr->status == UNLOCKED){
+    	impl_ptr->status = LOCKED;
+    	impl_ptr->owner = cpu::self()->impl_ptr->running_thread;
+    }else{
+    	impl_ptr->lock_queue.push(cpu::self()->impl_ptr->running_thread);
+    	swapcontext(cpu::self()->impl_ptr->running_thread->context,
+				cpu::self()->impl_ptr->context);
+    }
+    cpu::interrupt_enable();
 }
 
 void mutex::unlock(){
-    assert(false);
+    cpu::interrupt_disable();
+    if(impl_ptr->owner != cpu::self()->impl_ptr->running_thread)
+    	throw runtime_error("A thread tried to unlock a mutex it did not hold.");
+    
+    impl_ptr->status = UNLOCKED;
+    if(!impl_ptr->lock_queue.empty()){
+    	impl_ptr->status = LOCKED;
+    	impl_ptr->owner = impl_ptr->lock_queue.front();
+    	impl_ptr->lock_queue.pop();
+    	thread_ready_queue_push(impl_ptr->owner);
+    }
+    cpu::interrupt_enable();
 }
 
 
