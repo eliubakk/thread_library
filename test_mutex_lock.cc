@@ -1,7 +1,10 @@
 #include "thread.h"
 #include <iostream>
+
 mutex mutex1;
+
 using namespace std;
+
 void test_child_thread(void *a){
 	mutex1.lock();
 	cout << "child is done!" << endl;
@@ -13,9 +16,10 @@ void test_parent_thread(void *a){
 	for (int i = 0; i < 5; ++i){
 		thread t1((thread_startfunc_t)test_child_thread, a);
 	}
+	cout << "parent is done" << endl;
 }
 int main(){
 	int num = 100;
-	cpu::boot(1, (thread_startfunc_t)test_parent_thread ,(void *)&num, 0, 0, 0);
+	cpu::boot(1, (thread_startfunc_t)test_parent_thread ,(void *)&num, 0, 0, 2);
 	return 0;
 }
