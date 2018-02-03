@@ -21,7 +21,7 @@ void test_bob_thread(void *a){
         note_lock.unlock();    
     }
     else{
-        note_lock.unlock()
+        note_lock.unlock();
     }
 }
 void test_alice_thread(void *a){
@@ -40,7 +40,7 @@ void test_alice_thread(void *a){
         note_lock.unlock();    
     }
     else{
-        note_lock.unlock()
+        note_lock.unlock();
     }
 }
 void test_parent_thread(void *a){
@@ -49,6 +49,7 @@ void test_parent_thread(void *a){
     thread t2((thread_startfunc_t)test_alice_thread, &num);
 }
 int main(){
+    int num = 10;
     cpu::boot(1, (thread_startfunc_t) test_parent_thread, (void *) &num, false, false, 0);
     return 0;
 }
