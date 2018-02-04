@@ -5,6 +5,10 @@ test_milk_example.cc
 test_error_mutex.cc
 test_error_cv_in_if.cc
 test_mutex_lock.cc
+test_join_multiCPU.cc
+test_milk_example_multiCPU.cc
+test_mutex_lock_multiCPU.cc
+test_single_yield_multiCPU.cc
 cpu.cc
 cpu_impl.cc
 cpu_impl.h
