@@ -2,6 +2,7 @@
 #include "mutex_impl.h"
 #include "cpu.h"
 #include "cpu_impl.h"
+#include "thread_globals.h"
 #include <cassert>
 #include <stdexcept>
 

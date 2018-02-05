@@ -1,26 +1,41 @@
 #include "cv.h"
+#include "cv_impl.h"
+#include "cpu.h"
+#include "cpu_impl.h"
+#include <ucontext.h>
 #include <cassert>
 
 using namespace std;
 
 cv::cv(){
-    assert(false);
+    impl_ptr = new impl();
 }
 
 cv::~cv(){
-    assert(false);
+	delete impl_ptr;
+    //assert(false);
 }
 
-void cv::wait(mutex&){
-    assert(false);
+void cv::wait(mutex& m){
+	m.unlock();
+	cpu::interrupt_disable();
+    impl_ptr->waiting_queue.push(cpu::self()->impl_ptr->running_thread);
+    swapcontext(cpu::self()->impl_ptr->running_thread->context,
+    			cpu::self()->impl_ptr->context);
+    cpu::interrupt_enable();
+    m.lock();
 }                // wait on this condition variable
 
 void cv::signal(){
-    assert(false);
+    cpu::interrupt_disable();
+    impl_ptr->wake_up();
+   	cpu::interrupt_enable();
 }                      // wake up one thread on this condition
                                         // variable
 void cv::broadcast(){
-    assert(false);
+    cpu::interrupt_disable();
+    while(impl_ptr->wake_up());
+   	cpu::interrupt_enable();
 }                   // wake up all threads on this condition
                                         // variable
 

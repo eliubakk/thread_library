@@ -42,6 +42,9 @@ void disk_request(void *a){
         d1.requester = *arg;
         d1.track = deque_request[*arg][i];
         work_queue.push_back(d1);
+        mutex2.lock();
+        cout << "requester " << *arg << " track " << deque_request[*arg][i] << endl;
+        mutex2.unlock();
         ++total_pushed;
         ++tracks_in_q;
         vec_done[*arg] = false;
@@ -74,6 +77,9 @@ void disk_service(void *a){
         last_track = work_queue[position].track;
         vec_cv[work_queue[position].requester]->signal();
 
+        mutex2.lock();
+        cout << "service requester " << work_queue[position].requester << " track " << last_track << endl;
+        mutex2.unlock();
         work_queue.erase(work_queue.begin() + position);
         ++request_done;
         --tracks_in_q;
@@ -110,5 +116,5 @@ int main(){
     }
     active_requester = 4;
     int num = 10;
-    cpu::boot(3, (thread_startfunc_t)disk_main ,(void *)&num, 0, 0, 0);
+    cpu::boot(1, (thread_startfunc_t)disk_main ,(void *)&num, 0, 0, 0);
 }

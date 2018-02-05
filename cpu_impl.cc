@@ -19,7 +19,6 @@ cpu::impl::~impl(){
 
 void cpu::impl::ipi_handler(){
 	//TODO: Decide wtf to do here
-	cout << "in ipi_handler" << endl;
 }
 
 void cpu::impl::timer_handler(){
