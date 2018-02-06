@@ -39,7 +39,12 @@ void cpu::init(thread_startfunc_t func, void *arg){
 				thread_ready_queue_push(impl_ptr->running_thread);
 				impl_ptr->yielded = false;
 			}else if(impl_ptr->finished){
-				delete impl_ptr->running_thread;
+				delete[] impl_ptr->running_thread->stack;
+				delete impl_ptr->running_thread->context;
+				impl_ptr->running_thread->context = nullptr;
+				if(impl_ptr->running_thread->object_destroyed){
+					delete impl_ptr->running_thread;
+				}
 				impl_ptr->finished = false;
 			}
 			impl_ptr->running_thread = nullptr;

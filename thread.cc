@@ -14,12 +14,17 @@ thread::thread(thread_startfunc_t func, void *arg){
 } // create a new thread
 
 thread::~thread(){
-	//assert(false);
+	if(impl_ptr->context){
+		impl_ptr->object_destroyed = true;
+	}else{
+		delete impl_ptr;
+	}
+	
 }
 
 void thread::join(){
 	cpu::interrupt_disable();
-	if (impl_ptr) {
+	if (impl_ptr->context) {
 		impl_ptr->thread_join_queue.push(cpu::self()->impl_ptr->running_thread);
 		swapcontext(cpu::self()->impl_ptr->running_thread->context,
 					cpu::self()->impl_ptr->context);

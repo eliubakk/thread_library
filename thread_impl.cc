@@ -2,11 +2,14 @@
 #include "thread_globals.h"
 #include "cpu.h"
 #include "cpu_impl.h"
+#include <iostream>
+
+using namespace std;
 
 thread::impl::impl(thread_startfunc_t func, void *arg) {
 	context = new ucontext_t();
 	getcontext(context);
-	char *stack = new char [STACK_SIZE];
+	stack = new char [STACK_SIZE];
 	context->uc_stack.ss_sp = stack;
 	context->uc_stack.ss_size = STACK_SIZE;
 	context->uc_stack.ss_flags = 0;
@@ -16,8 +19,7 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 }
 
 thread::impl::~impl(){
-	delete[] (char*)context->uc_stack.ss_sp;
-	delete context;
+	
 }
 
 void thread::impl::thread_wrapper(thread_startfunc_t func, void* arg){
