@@ -7,7 +7,6 @@ mutex mutex1;
 cv cv1;
 int counter = 0;
 
-int counter = 0;
 void test_child_thread(void *a){
 	++counter;
 	cout << "child is about to signal without locking mutex" << endl;
