@@ -9,6 +9,9 @@ test_join_multiCPU.cc
 test_milk_example_multiCPU.cc
 test_mutex_lock_multiCPU.cc
 test_single_yield_multiCPU.cc
+test_spec.cc
+test_signal_different_threads.cc
+test_thread_dying_with_mutex.cc
 cpu.cc
 cpu_impl.cc
 cpu_impl.h
