@@ -11,6 +11,7 @@ test_signal_without_mutex.cc
 test_single_yield.cc
 test_spec.cc
 test_thread_dying_with_mutex.cc
+test_one_thread_at_a_time.cc
 test_unlock_twice.cc
 test_wait_no_lock.cc
 cpu.cc
