@@ -16,6 +16,6 @@ bool cv::impl::wake_up(){
 		return false;
 	thread::impl* t = waiting_queue.front();
     waiting_queue.pop();
-   	thread_ready_queue_push(t);
+   	thread_ready_queue_push(t, true);
    	return true;
 }

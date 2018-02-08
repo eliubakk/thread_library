@@ -18,6 +18,7 @@ mutex::~mutex(){
 
 void mutex::lock(){
     cpu::interrupt_disable();
+    while(guard.exchange(1)){}
     if(impl_ptr->status == UNLOCKED){
     	impl_ptr->status = LOCKED;
     	impl_ptr->owner = cpu::self()->impl_ptr->running_thread;
@@ -26,11 +27,13 @@ void mutex::lock(){
     	swapcontext(cpu::self()->impl_ptr->running_thread->context,
 				cpu::self()->impl_ptr->context);
     }
+    guard = 0;
     cpu::interrupt_enable();
 }
 
 void mutex::unlock(){
     cpu::interrupt_disable();
+    while(guard.exchange(1)){}
     if(impl_ptr->owner != cpu::self()->impl_ptr->running_thread)
     	throw runtime_error("A thread tried to unlock a mutex it did not hold.");
     
@@ -39,8 +42,9 @@ void mutex::unlock(){
     	impl_ptr->status = LOCKED;
     	impl_ptr->owner = impl_ptr->lock_queue.front();
     	impl_ptr->lock_queue.pop();
-    	thread_ready_queue_push(impl_ptr->owner);
+    	thread_ready_queue_push(impl_ptr->owner, true);
     }
+    guard = 0;
     cpu::interrupt_enable();
 }
 

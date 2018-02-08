@@ -24,6 +24,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 		thread temp(func, arg);
 		func = nullptr;
 	}
+	while(guard.exchange(1)){}
 	while(1){
 		if(!thread_ready_queue.empty()){
 			impl_ptr->running_thread = thread_ready_queue.front();
@@ -36,7 +37,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 			}
 			swapcontext(impl_ptr->context, impl_ptr->running_thread->context);
 			if(impl_ptr->yielded){
-				thread_ready_queue_push(impl_ptr->running_thread);
+				thread_ready_queue_push(impl_ptr->running_thread, true);
 				impl_ptr->yielded = false;
 			}else if(impl_ptr->finished){
 				delete[] impl_ptr->running_thread->stack;
@@ -50,8 +51,10 @@ void cpu::init(thread_startfunc_t func, void *arg){
 			impl_ptr->running_thread = nullptr;
 		}else{
 			cpu_suspended_queue.push(this);
+			guard = 0;
 			cpu::interrupt_enable_suspend();
 			cpu::interrupt_disable();
+			while(guard.exchange(1)){}
 		}
 	}
 }

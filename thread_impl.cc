@@ -23,12 +23,14 @@ thread::impl::~impl(){
 }
 
 void thread::impl::thread_wrapper(thread_startfunc_t func, void* arg){
+	guard = 0;
 	cpu::interrupt_enable();
 	func(arg);
 	cpu::interrupt_disable();
+	while(guard.exchange(1)){}
 	cpu::self()->impl_ptr->finished = true;
 	while (!cpu::self()->impl_ptr->running_thread->thread_join_queue.empty()) {
-		thread_ready_queue_push(cpu::self()->impl_ptr->running_thread->thread_join_queue.front());
+		thread_ready_queue_push(cpu::self()->impl_ptr->running_thread->thread_join_queue.front(), true);
 		cpu::self()->impl_ptr->running_thread->thread_join_queue.pop();
 	}
 	setcontext(cpu::self()->impl_ptr->context);
