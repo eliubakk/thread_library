@@ -1,5 +1,6 @@
 #include "thread.h"
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 mutex mutex1;
@@ -7,13 +8,21 @@ cv cv1;
 
 void test_child_thread(void *a){
 	mutex1.lock();
-	cv1.wait(mutex1);
+	try{
+		cv1.wait(mutex1);
+	}
+	catch(bad_alloc& e){
+	}
 	mutex1.unlock();
 }
 void test_parent_thread(void *a){
 	cout << "parent is called" << endl;
-	for (int i = 0; i < 100000; ++i) {
-		thread t1((thread_startfunc_t)test_child_thread, a);
+	try{
+		for (int i = 0; i < 100000; ++i) {
+			thread t1((thread_startfunc_t)test_child_thread, a);
+		}
+	}catch(bad_alloc& e){
+		
 	}
 	cout << "parent is finished" << endl;
 }

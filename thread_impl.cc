@@ -15,7 +15,7 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 		stack = new char [STACK_SIZE];
 	}catch(bad_alloc& e){
 		delete context;
-		throw bad_alloc("Not enough memory for thread stack.");
+		throw e;
 	}
 	
 	context->uc_stack.ss_sp = stack;

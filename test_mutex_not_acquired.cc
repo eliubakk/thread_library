@@ -7,12 +7,14 @@ mutex mutex1;
 cv cv1;
 
 void test_child_thread(void *a){
-	mutex1.unlock();
-	catch (const runtime_error& error) {
+	try{
+		mutex1.unlock();
+	}catch (const runtime_error& error) {
 		cout << "Thread tried to unlock mutex it does not currently own" << endl;
 	}
-	cv1.wait(mutex1);
-	catch (const runtime_error& error) {
+	try{
+		cv1.wait(mutex1);
+	}catch (const runtime_error& error) {
 		cout << "Thread tried to wait on mutex it does not currently own" << endl;
 	}
 }

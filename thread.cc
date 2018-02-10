@@ -11,15 +11,7 @@
 using namespace std;
 
 thread::thread(thread_startfunc_t func, void *arg){
-	try{
-		impl_ptr = new impl(func, arg); 
-	}catch(bad_alloc& e){
-		if(strcmp(e.what(), "Not enough memory for thread stack.") == 0)
-			throw e;
-		else
-			throw bad_alloc("Not enough memory for thread");
-	}
-	
+	impl_ptr = new impl(func, arg); 	
 	thread_ready_queue_push(impl_ptr);
 } // create a new thread
 
@@ -50,7 +42,7 @@ void thread::join(){
 		}catch(bad_alloc& e){
 			guard = 0;
 			cpu::interrupt_enable();
-			throw bad_alloc("thread_join_queue.push failed");
+			throw e;
 		}
 		swapcontext(cpu::self()->impl_ptr->running_thread->context,
 					cpu::self()->impl_ptr->context);

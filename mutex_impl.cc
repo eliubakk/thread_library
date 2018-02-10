@@ -1,4 +1,6 @@
 #include "mutex_impl.h"
+#include "cpu_impl.h"
+#include <stdexcept>
 
 using namespace std;
 
@@ -11,7 +13,7 @@ mutex::impl::~impl(){
 	//TODO
 }
 
-mutex::impl::lock(){
+void mutex::impl::lock(){
 	if(status == UNLOCKED){
         status = LOCKED;
         owner = cpu::self()->impl_ptr->running_thread;
@@ -22,7 +24,7 @@ mutex::impl::lock(){
     }
 }
 
-mutex::impl::unlock(){
+void mutex::impl::unlock(){
 	if(owner != cpu::self()->impl_ptr->running_thread)
     	throw runtime_error("A thread tried to unlock a mutex it did not hold.");
 

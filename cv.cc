@@ -2,6 +2,7 @@
 #include "cv_impl.h"
 #include "cpu.h"
 #include "cpu_impl.h"
+#include "mutex_impl.h"
 #include <ucontext.h>
 #include <cassert>
 #include <stdexcept>
@@ -25,12 +26,16 @@ void cv::wait(mutex& m){
 	}catch(bad_alloc& e){
 		guard = 0;
 		cpu::interrupt_enable();
-		throw bad_alloc("waiting_queue.push failed.");
+		throw e;
 	}
 	try{
 		m.impl_ptr->unlock();
 	}catch(bad_alloc& e){
         guard = 0;
+        cpu::interrupt_enable();
+        throw e;
+    }catch(runtime_error& e){
+    	guard = 0;
         cpu::interrupt_enable();
         throw e;
     }
@@ -41,7 +46,7 @@ void cv::wait(mutex& m){
 	}catch(bad_alloc& e){
         guard = 0;
         cpu::interrupt_enable();
-        throw bad_alloc("lock_queue.push failed.");
+        throw e;
     }
     guard = 0;
     cpu::interrupt_enable();

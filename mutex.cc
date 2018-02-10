@@ -24,7 +24,7 @@ void mutex::lock(){
     }catch(bad_alloc& e){
         guard = 0;
         cpu::interrupt_enable();
-        throw bad_alloc("lock_queue.push failed.");
+        throw e;
     }
     guard = 0;
     cpu::interrupt_enable();
@@ -37,6 +37,11 @@ void mutex::unlock(){
         impl_ptr->unlock();
     }
     catch(bad_alloc& e){
+        guard = 0;
+        cpu::interrupt_enable();
+        throw e;
+    }
+    catch(runtime_error& e){
         guard = 0;
         cpu::interrupt_enable();
         throw e;
