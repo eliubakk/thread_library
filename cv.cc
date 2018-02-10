@@ -4,6 +4,7 @@
 #include "cpu_impl.h"
 #include <ucontext.h>
 #include <cassert>
+#include <stdexcept>
 
 using namespace std;
 
@@ -17,21 +18,45 @@ cv::~cv(){
 }
 
 void cv::wait(mutex& m){
-	m.unlock();
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
-    impl_ptr->waiting_queue.push(cpu::self()->impl_ptr->running_thread);
-    swapcontext(cpu::self()->impl_ptr->running_thread->context,
-    			cpu::self()->impl_ptr->context);
+	try{
+		impl_ptr->waiting_queue.push(cpu::self()->impl_ptr->running_thread);
+	}catch(bad_alloc& e){
+		guard = 0;
+		cpu::interrupt_enable();
+		throw bad_alloc("waiting_queue.push failed.");
+	}
+	try{
+		m.impl_ptr->unlock();
+	}catch(bad_alloc& e){
+        guard = 0;
+        cpu::interrupt_enable();
+        throw e;
+    }
+	swapcontext(cpu::self()->impl_ptr->running_thread->context,
+				cpu::self()->impl_ptr->context);
+	try{
+		m.impl_ptr->lock();
+	}catch(bad_alloc& e){
+        guard = 0;
+        cpu::interrupt_enable();
+        throw bad_alloc("lock_queue.push failed.");
+    }
     guard = 0;
     cpu::interrupt_enable();
-    m.lock();
 }                // wait on this condition variable
 
 void cv::signal(){
     cpu::interrupt_disable();
     while(guard.exchange(1)){}
-    impl_ptr->wake_up();
+    try{
+    	impl_ptr->wake_up();
+    }catch(bad_alloc& e){
+    	guard = 0;
+    	cpu::interrupt_enable();
+    	throw e;
+    }
 	guard = 0;
    	cpu::interrupt_enable();
 }                      // wake up one thread on this condition
@@ -39,7 +64,13 @@ void cv::signal(){
 void cv::broadcast(){
     cpu::interrupt_disable();
     while(guard.exchange(1)){}
-    while(impl_ptr->wake_up());
+    try{
+    	while(impl_ptr->wake_up());
+    }catch(bad_alloc& e){
+    	guard = 0;
+    	cpu::interrupt_enable();
+    	throw e;
+    }
 	guard = 0;
    	cpu::interrupt_enable();
 }                   // wake up all threads on this condition

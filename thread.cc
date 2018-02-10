@@ -6,11 +6,20 @@
 #include <cassert>
 #include <ucontext.h>
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
 thread::thread(thread_startfunc_t func, void *arg){
-	impl_ptr = new impl(func, arg); 
+	try{
+		impl_ptr = new impl(func, arg); 
+	}catch(bad_alloc& e){
+		if(strcmp(e.what(), "Not enough memory for thread stack.") == 0)
+			throw e;
+		else
+			throw bad_alloc("Not enough memory for thread");
+	}
+	
 	thread_ready_queue_push(impl_ptr);
 } // create a new thread
 
@@ -36,7 +45,13 @@ void thread::join(){
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
 	if (impl_ptr->context) {
-		impl_ptr->thread_join_queue.push(cpu::self()->impl_ptr->running_thread);
+		try{
+			impl_ptr->thread_join_queue.push(cpu::self()->impl_ptr->running_thread);
+		}catch(bad_alloc& e){
+			guard = 0;
+			cpu::interrupt_enable();
+			throw bad_alloc("thread_join_queue.push failed");
+		}
 		swapcontext(cpu::self()->impl_ptr->running_thread->context,
 					cpu::self()->impl_ptr->context);
 	}

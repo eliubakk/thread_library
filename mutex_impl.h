@@ -13,6 +13,9 @@ class mutex::impl{
 		std::queue<thread::impl*> lock_queue;
 		bool status;
 
+		void lock();
+		void unlock();
+
 		#define LOCKED 1
 		#define UNLOCKED 0
 };

@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "cpu_impl.h"
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -10,7 +11,13 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 	object_destroyed = false;
 	context = new ucontext_t();
 	getcontext(context);
-	stack = new char [STACK_SIZE];
+	try{
+		stack = new char [STACK_SIZE];
+	}catch(bad_alloc& e){
+		delete context;
+		throw bad_alloc("Not enough memory for thread stack.");
+	}
+	
 	context->uc_stack.ss_sp = stack;
 	context->uc_stack.ss_size = STACK_SIZE;
 	context->uc_stack.ss_flags = 0;

@@ -1,4 +1,5 @@
 #include "thread_globals.h"
+#include <stdexcept>
 
 using namespace std;
 
@@ -14,12 +15,24 @@ void thread_ready_queue_push(thread::impl* t, bool have_guard)
 		while(guard.exchange(1)){}
 	}
 
-	thread_ready_queue.push(t);
-	if (!cpu_suspended_queue.empty()) {
-		cpu *curr_cpu = cpu_suspended_queue.front();
-		cpu_suspended_queue.pop();
-		curr_cpu->interrupt_send();
+	try{
+		thread_ready_queue.push(t);
+		if (!cpu_suspended_queue.empty()) {
+			cpu *curr_cpu = cpu_suspended_queue.front();
+			cpu_suspended_queue.pop();
+			curr_cpu->interrupt_send();
+		}
+	}catch(bad_alloc e){
+		if(!have_guard){
+			guard = 0;
+			if(!first)
+				cpu::interrupt_enable();
+			else
+				first = false;
+		}
+		throw bad_alloc("thread_ready_queue.push failed.");
 	}
+
 
 	if(!have_guard){
 		guard = 0;
