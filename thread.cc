@@ -5,6 +5,7 @@
 #include "cpu_impl.h"
 #include <cassert>
 #include <ucontext.h>
+#include <iostream>
 
 using namespace std;
 
@@ -14,6 +15,9 @@ thread::thread(thread_startfunc_t func, void *arg){
 } // create a new thread
 
 thread::~thread(){
+	static bool first = true;
+	if(!first)
+		cpu::interrupt_disable();
 	while(guard.exchange(1)){}
 	if(impl_ptr->context){
 		impl_ptr->object_destroyed = true;
@@ -21,7 +25,11 @@ thread::~thread(){
 		delete impl_ptr;
 	}
 	guard = 0;
-	
+	if(!first){
+		cpu::interrupt_enable();
+	}else{
+		first = false;
+	}
 }
 
 void thread::join(){

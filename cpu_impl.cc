@@ -23,8 +23,10 @@ void cpu::impl::ipi_handler(){
 
 void cpu::impl::timer_handler(){
 	cpu::interrupt_disable();
+	while(guard.exchange(1)){}
 	cpu::self()->impl_ptr->yielded = true;
 	swapcontext(cpu::self()->impl_ptr->running_thread->context,
 				cpu::self()->impl_ptr->context);
+	guard = 0;
 	cpu::interrupt_enable();
 }

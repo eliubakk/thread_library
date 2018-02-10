@@ -7,6 +7,7 @@
 using namespace std;
 
 thread::impl::impl(thread_startfunc_t func, void *arg) {
+	object_destroyed = false;
 	context = new ucontext_t();
 	getcontext(context);
 	stack = new char [STACK_SIZE];
@@ -14,7 +15,6 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 	context->uc_stack.ss_size = STACK_SIZE;
 	context->uc_stack.ss_flags = 0;
 	context->uc_link = nullptr;
-
 	makecontext(context, (void (*)())thread_wrapper, 2, func, arg);
 }
 

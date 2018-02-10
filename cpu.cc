@@ -4,6 +4,7 @@
 #include "thread_impl.h"
 #include "thread_globals.h"
 #include <ucontext.h>
+#include <iostream>
 
 using namespace std;
 
@@ -36,6 +37,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 				wakeup_cpu->interrupt_send();
 			}
 			swapcontext(impl_ptr->context, impl_ptr->running_thread->context);
+			assert_interrupts_disabled();
 			if(impl_ptr->yielded){
 				thread_ready_queue_push(impl_ptr->running_thread, true);
 				impl_ptr->yielded = false;

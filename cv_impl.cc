@@ -12,6 +12,7 @@ cv::impl::~impl(){
 }
 
 bool cv::impl::wake_up(){
+	assert_interrupts_disabled();
 	if(waiting_queue.empty())
 		return false;
 	thread::impl* t = waiting_queue.front();

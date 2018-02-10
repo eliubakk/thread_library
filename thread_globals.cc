@@ -7,7 +7,10 @@ queue<cpu*> cpu_suspended_queue;
 
 void thread_ready_queue_push(thread::impl* t, bool have_guard)
 {
+	static bool first = true;
 	if(!have_guard){
+		if(!first)
+			cpu::interrupt_disable();
 		while(guard.exchange(1)){}
 	}
 
@@ -17,6 +20,13 @@ void thread_ready_queue_push(thread::impl* t, bool have_guard)
 		cpu_suspended_queue.pop();
 		curr_cpu->interrupt_send();
 	}
-	if(!have_guard)
+
+	if(!have_guard){
 		guard = 0;
+		if(!first)
+			cpu::interrupt_enable();
+		else
+			first = false;
+	}
+
 }

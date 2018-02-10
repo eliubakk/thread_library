@@ -42,6 +42,7 @@ void mutex::unlock(){
     	impl_ptr->status = LOCKED;
     	impl_ptr->owner = impl_ptr->lock_queue.front();
     	impl_ptr->lock_queue.pop();
+        assert_interrupts_disabled();
     	thread_ready_queue_push(impl_ptr->owner, true);
     }
     guard = 0;
