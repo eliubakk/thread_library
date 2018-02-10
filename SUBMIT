@@ -1,3 +1,4 @@
+test_bad_alloc.cc
 test_cv_with_multiple_mutexes.cc
 test_deadlock.cc
 test_error_cv_in_if.cc
@@ -5,13 +6,14 @@ test_join.cc
 test_milk_example.cc
 test_multi_join_thread.cc
 test_mutex_lock.cc
+test_mutex_not_acquired.cc
+test_one_thread_at_a_time.cc
 test_p1.cc
 test_signal_different_threads.cc
 test_signal_without_mutex.cc
 test_single_yield.cc
 test_spec.cc
 test_thread_dying_with_mutex.cc
-test_one_thread_at_a_time.cc
 test_unlock_twice.cc
 cpu.cc
 cpu_impl.cc
