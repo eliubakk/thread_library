@@ -116,5 +116,5 @@ int main(){
     }
     active_requester = 4;
     int num = 10;
-    cpu::boot(5, (thread_startfunc_t)disk_main ,(void *)&num, true, 0, 0);
+    cpu::boot(1, (thread_startfunc_t)disk_main ,(void *)&num, 0, 0, 0);
 }

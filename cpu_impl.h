@@ -16,6 +16,7 @@ class cpu::impl{
 		bool finished;
 		static void ipi_handler();
 		static void timer_handler();
+		//static void service_next_thread();
 };
 
 #endif

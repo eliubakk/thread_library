@@ -29,6 +29,6 @@ int main(){
 	for (int i = 0; i < 10; ++i){
 		vec_num.push_back(i);
 	}
-	cpu::boot(3, (thread_startfunc_t)test_parent_thread ,(void *)10, 1, 0, 1);
+	cpu::boot(3, (thread_startfunc_t)test_parent_thread ,(void *)10, 0, 1, 1);
 	return 0;
 }
