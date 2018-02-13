@@ -11,6 +11,7 @@ test_mutex_lock.cc
 test_mutex_not_acquired.cc
 test_one_thread_at_a_time.cc
 test_p1.cc
+test_parent_die.cc
 test_signal_different_threads.cc
 test_signal_without_mutex.cc
 test_single_yield.cc
