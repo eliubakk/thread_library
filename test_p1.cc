@@ -16,6 +16,8 @@ struct disk_struct{
 
 mutex mutex1, mutex2;
 cv cv1, cv2;
+thread* servicer_t;
+int joined = 0;
 int max_size;
 int total_pushed = 0;
 int num_tracks = 0;
@@ -34,24 +36,44 @@ void disk_request(void *a){
     int *arg = (int*)a;
     int i = 0;
     mutex1.lock();
+    if(*arg % 2 == 1)
+        joined++;
     while(i < (int) deque_request[*arg].size()){
         while (tracks_in_q >= max_size || !vec_done[*arg]){
-            vec_cv[*arg]->wait(mutex1);
+            cv2.wait(mutex1);
         }        
+        thread::yield();
         disk_struct d1;
         d1.requester = *arg;
         d1.track = deque_request[*arg][i];
+        thread::yield();
         work_queue.push_back(d1);
+        thread::yield();
         mutex2.lock();
+        thread::yield();
         cout << "requester " << *arg << " track " << deque_request[*arg][i] << endl;
         mutex2.unlock();
         ++total_pushed;
+        thread::yield();
         ++tracks_in_q;
-        vec_done[*arg] = false;
         cv1.signal();
+        vec_done[*arg] = false;
+        vec_cv[*arg]->wait(mutex1);
         ++i;
     }
     mutex1.unlock();
+    cv1.signal();
+    if(*arg % 2 == 1){
+        servicer_t->join();
+        mutex2.lock();
+        cout << "joined" << endl;
+        mutex2.unlock();
+        mutex1.lock();
+        joined--;
+        mutex1.unlock();
+        if(joined == 0)
+            delete servicer_t;
+    }
 }
 
 void disk_service(void *a){
@@ -61,6 +83,7 @@ void disk_service(void *a){
         while (tracks_in_q != min(max_size, active_requester)){
             cv1.wait(mutex1); 
         }        
+        thread::yield();
         int lowest = INT_MAX;
         int position = 0;
         for (int i = 0; i < (int) work_queue.size(); ++i){
@@ -69,23 +92,23 @@ void disk_service(void *a){
                 position = i;
             }
         }
-        --vec_active[work_queue[position].requester];
-        vec_done[work_queue[position].requester] = true;
-        if (vec_active[work_queue[position].requester] == 0){
+        thread::yield();
+        disk_struct req = work_queue[position];
+        work_queue.erase(work_queue.begin() + position);
+        --tracks_in_q;
+        cv2.signal();
+        --vec_active[req.requester];
+        if (vec_active[req.requester] == 0){
             --active_requester;
         }
-        last_track = work_queue[position].track;
-        vec_cv[work_queue[position].requester]->signal();
-
+        last_track = req.track;
         mutex2.lock();
-        cout << "service requester " << work_queue[position].requester << " track " << last_track << endl;
+        cout << "service requester " << req.requester << " track " << last_track << endl;
         mutex2.unlock();
-        work_queue.erase(work_queue.begin() + position);
+        thread::yield();
+        vec_done[req.requester] = true;
+        vec_cv[req.requester]->signal();
         ++request_done;
-        --tracks_in_q;
-        for (int i = 0; i < (int)vec_cv.size(); ++i){
-            vec_cv[i]->signal();
-        }
     }
     mutex1.unlock();
 }
@@ -96,7 +119,7 @@ void disk_main(void *a){
         thread t1 ((thread_startfunc_t) disk_request, (void *) &vec_int[i]);
         ++i;
     }
-    thread t1 ((thread_startfunc_t) disk_service, (void *) 100);
+    servicer_t = new thread((thread_startfunc_t) disk_service, (void *) 100);
 }
 
 int main(){
@@ -104,7 +127,7 @@ int main(){
     for (int i = 2; i < 6; ++i){
         deque<int>temp;
         vec_active.push_back(0);
-        for(int j = 0; j < 5; ++j){
+        for(int j = 0; j < (10 - i); ++j){
             ++vec_active[i - 2];
             temp.push_back(j);
             ++num_tracks;
