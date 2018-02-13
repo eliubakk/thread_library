@@ -9,7 +9,7 @@ class mutex::impl{
 	public:
 		impl();
 		~impl();
-		thread::impl* owner;
+		unsigned long owner;
 		std::queue<thread::impl*> lock_queue;
 		bool status;
 
