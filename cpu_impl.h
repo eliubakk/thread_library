@@ -12,7 +12,6 @@ class cpu::impl{
 		~impl();
 		ucontext_t* context;
 		thread::impl* running_thread;
-		bool yielded;
 		bool finished;
 		static void ipi_handler();
 		static void timer_handler();

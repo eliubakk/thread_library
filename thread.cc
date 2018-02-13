@@ -44,8 +44,13 @@ void thread::join(){
 			cpu::interrupt_enable();
 			throw e;
 		}
-		swapcontext(cpu::self()->impl_ptr->running_thread->context,
+		if(!thread_ready_queue.empty() && cpu::self()->impl_ptr->running_thread != nullptr){
+			swap_to_next_thread(false);
+		}
+		else{
+			swapcontext(cpu::self()->impl_ptr->running_thread->context,
 					cpu::self()->impl_ptr->context);
+		}
 	}
 	guard = 0;
 	cpu::interrupt_enable();
@@ -54,9 +59,9 @@ void thread::join(){
 void thread::yield(){
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
-	cpu::self()->impl_ptr->yielded = true;
-	swapcontext(cpu::self()->impl_ptr->running_thread->context,
-				cpu::self()->impl_ptr->context);
+	if(!thread_ready_queue.empty() && cpu::self()->impl_ptr->running_thread != nullptr){
+		swap_to_next_thread(true);
+	}
 	guard = 0;
 	cpu::interrupt_enable();
 }                // yield the CPU

@@ -38,10 +38,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 			}
 			swapcontext(impl_ptr->context, impl_ptr->running_thread->context);
 			assert_interrupts_disabled();
-			if(impl_ptr->yielded){
-				thread_ready_queue_push(impl_ptr->running_thread, true);
-				impl_ptr->yielded = false;
-			}else if(impl_ptr->finished){
+			if(impl_ptr->finished){
 				delete[] impl_ptr->running_thread->stack;
 				delete impl_ptr->running_thread->context;
 				impl_ptr->running_thread->context = nullptr;

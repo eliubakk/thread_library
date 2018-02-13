@@ -1,4 +1,6 @@
 #include "thread_globals.h"
+#include "cpu_impl.h"
+#include <ucontext.h>
 #include <stdexcept>
 
 using namespace std;
@@ -42,4 +44,14 @@ void thread_ready_queue_push(thread::impl* t, bool have_guard)
 			first = false;
 	}
 
+}
+
+void swap_to_next_thread(bool push_to_ready_queue){
+	thread::impl* curr_t = cpu::self()->impl_ptr->running_thread;
+	if(push_to_ready_queue)
+		thread_ready_queue_push(curr_t, true);
+	cpu::self()->impl_ptr->running_thread = thread_ready_queue.front();
+	thread_ready_queue.pop();
+	swapcontext(curr_t->context,
+				cpu::self()->impl_ptr->running_thread->context);
 }

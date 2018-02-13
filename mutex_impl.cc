@@ -19,8 +19,13 @@ void mutex::impl::lock(){
         owner = cpu::self()->impl_ptr->running_thread->id;
     }else{
         lock_queue.push(cpu::self()->impl_ptr->running_thread);
-        swapcontext(cpu::self()->impl_ptr->running_thread->context,
-                cpu::self()->impl_ptr->context);
+        if(!thread_ready_queue.empty() && cpu::self()->impl_ptr->running_thread != nullptr){
+			swap_to_next_thread(false);
+		}
+		else{
+			swapcontext(cpu::self()->impl_ptr->running_thread->context,
+					cpu::self()->impl_ptr->context);
+		}
     }
 }
 
