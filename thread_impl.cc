@@ -8,6 +8,9 @@
 using namespace std;
 
 thread::impl::impl(thread_startfunc_t func, void *arg) {
+	static unsigned long id_counter = 1;
+	id = id_counter;
+	++id_counter;
 	object_destroyed = false;
 	context = new ucontext_t();
 	getcontext(context);

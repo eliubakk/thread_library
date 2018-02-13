@@ -7,13 +7,24 @@ mutex mutex1;
 cv cv1;
 
 void test_child_thread(void *a){
-	mutex1.lock();
+	try{
+		mutex1.lock();
+	}
+	catch(bad_alloc& e){
+		return;
+	}
 	try{
 		cv1.wait(mutex1);
 	}
 	catch(bad_alloc& e){
+
 	}
-	mutex1.unlock();
+	try{
+		mutex1.unlock();
+	}
+	catch(bad_alloc& e){
+	}
+
 }
 void test_parent_thread(void *a){
 	cout << "parent is called" << endl;

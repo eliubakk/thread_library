@@ -13,6 +13,7 @@ class thread::impl{
 		std::queue<thread::impl*> thread_join_queue;
 		bool object_destroyed;
 		char *stack;
+		unsigned long id;
 
 		static void thread_wrapper(thread_startfunc_t, void*);
 };
