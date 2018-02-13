@@ -30,12 +30,6 @@ void cpu::init(thread_startfunc_t func, void *arg){
 		if(!thread_ready_queue.empty()){
 			impl_ptr->running_thread = thread_ready_queue.front();
 			thread_ready_queue.pop();
-			if(!(cpu_suspended_queue.empty() ||
-				 thread_ready_queue.empty())){
-				cpu* wakeup_cpu = cpu_suspended_queue.front();
-				cpu_suspended_queue.pop();
-				wakeup_cpu->interrupt_send();
-			}
 			swapcontext(impl_ptr->context, impl_ptr->running_thread->context);
 			assert_interrupts_disabled();
 			if(impl_ptr->finished){
