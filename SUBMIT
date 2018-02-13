@@ -5,6 +5,7 @@ test_cv_with_multiple_mutexes.cc
 test_deadlock.cc
 test_error_cv_in_if.cc
 test_join.cc
+test_join_itself.cc
 test_milk_example.cc
 test_multi_join_thread.cc
 test_mutex_lock.cc
