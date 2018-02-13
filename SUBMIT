@@ -1,5 +1,6 @@
 test_bad_alloc.cc
 test_call_join_on_deadlock.cc
+test_cpu_boot_nullptr.cc
 test_cv_with_multiple_mutexes.cc
 test_deadlock.cc
 test_error_cv_in_if.cc
