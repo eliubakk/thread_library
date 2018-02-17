@@ -11,6 +11,8 @@ extern std::queue<cpu*> cpu_suspended_queue;
 
 void thread_ready_queue_push(thread::impl* t, bool have_guard = 0);
 
+void check_finished();
+
 void swap(bool from_cpu, bool push_to_ready_queue);
 	
 #endif

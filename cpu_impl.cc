@@ -25,6 +25,7 @@ void cpu::impl::timer_handler(){
 	assert_interrupts_enabled();
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
+	//printf("swap from timer interrupt...");
 	swap(false, true);
 	guard = 0;
 	assert_interrupts_disabled();

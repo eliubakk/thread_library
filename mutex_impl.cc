@@ -1,6 +1,7 @@
 #include "mutex_impl.h"
 #include "cpu_impl.h"
 #include <stdexcept>
+#include <iostream>
 
 using namespace std;
 
@@ -19,6 +20,7 @@ void mutex::impl::lock(){
         owner = cpu::self()->impl_ptr->running_thread->id;
     }else{
         lock_queue.push(cpu::self()->impl_ptr->running_thread);
+        //printf("swap from lock...");
         swap(false, false);
     }
 }

@@ -27,6 +27,7 @@ void cpu::init(thread_startfunc_t func, void *arg){
 	}
 	while(guard.exchange(1)){}
 	while(1){
+		//printf("swap from cpu...");
 		swap(true, false);
 		cpu_suspended_queue.push(this);
 		guard = 0;

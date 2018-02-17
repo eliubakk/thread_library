@@ -35,6 +35,7 @@ thread::impl::~impl(){
 }
 
 void thread::impl::thread_wrapper(thread_startfunc_t func, void* arg){
+	check_finished();
 	guard = 0;
 	assert_interrupts_disabled();
 	cpu::interrupt_enable();
@@ -43,10 +44,16 @@ void thread::impl::thread_wrapper(thread_startfunc_t func, void* arg){
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
 	cpu::self()->impl_ptr->prev_thread = cpu::self()->impl_ptr->running_thread;
+	if(!cpu::self()->impl_ptr->running_thread->thread_join_queue.empty()){
+		thread_ready_queue.push(cpu::self()->impl_ptr->running_thread->thread_join_queue.front());
+		cpu::self()->impl_ptr->running_thread->thread_join_queue.pop();
+	}
+
 	while (!cpu::self()->impl_ptr->running_thread->thread_join_queue.empty()) {
 		thread_ready_queue_push(cpu::self()->impl_ptr->running_thread->thread_join_queue.front(), true);
 		cpu::self()->impl_ptr->running_thread->thread_join_queue.pop();
 	}
+	//printf("swap from thread finishing...");
 	swap(false, false);
 }
 

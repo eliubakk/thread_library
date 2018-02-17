@@ -40,7 +40,7 @@ void thread::join(){
 	assert_interrupts_enabled(); 
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
-	if (impl_ptr->context) {
+	if (!impl_ptr->finished) {
 		try{
 			impl_ptr->thread_join_queue.push(cpu::self()->impl_ptr->running_thread);
 		}catch(bad_alloc& e){
@@ -49,6 +49,7 @@ void thread::join(){
 			cpu::interrupt_enable();
 			throw e;
 		}
+		//printf("swap from join...");
 		swap(false, false);
 	}
 	guard = 0;
@@ -60,6 +61,7 @@ void thread::yield(){
 	assert_interrupts_enabled(); 
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
+	//printf("swap from yield...");
 	swap(false, true);
 	guard = 0;
 	assert_interrupts_disabled();

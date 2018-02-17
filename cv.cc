@@ -6,6 +6,7 @@
 #include <ucontext.h>
 #include <cassert>
 #include <stdexcept>
+#include <iostream>
 
 using namespace std;
 
@@ -19,7 +20,8 @@ cv::~cv(){
 }
 
 void cv::wait(mutex& m){
-	assert_interrupts_enabled(); cpu::interrupt_disable();
+	assert_interrupts_enabled(); 
+	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
 	try{
 		impl_ptr->waiting_queue.push(cpu::self()->impl_ptr->running_thread);
@@ -42,6 +44,7 @@ void cv::wait(mutex& m){
         cpu::interrupt_enable();
         throw e;
     }
+    //printf("swap from cv::wait...");
     swap(false, false);
 	try{
 		m.impl_ptr->lock();
