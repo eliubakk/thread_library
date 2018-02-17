@@ -9,6 +9,7 @@ cpu::impl::impl(){
 	context = new ucontext_t();
 	assert(!getcontext(context));
 	running_thread = nullptr;
+	prev_thread = nullptr;
 	finished = false;
 }
 
@@ -21,11 +22,11 @@ void cpu::impl::ipi_handler(){
 }
 
 void cpu::impl::timer_handler(){
+	assert_interrupts_enabled();
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
-	if(!thread_ready_queue.empty() && cpu::self()->impl_ptr->running_thread != nullptr){
-		swap_to_next_thread(true);
-	}
+	swap(false, true);
 	guard = 0;
+	assert_interrupts_disabled();
 	cpu::interrupt_enable();
 }

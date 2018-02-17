@@ -11,6 +11,7 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 	static unsigned long id_counter = 1;
 	id = id_counter;
 	++id_counter;
+	finished = false;
 	object_destroyed = false;
 	context = new ucontext_t();
 	getcontext(context);
@@ -29,21 +30,24 @@ thread::impl::impl(thread_startfunc_t func, void *arg) {
 }
 
 thread::impl::~impl(){
-	
+	delete[] stack;
+	delete context;
 }
 
 void thread::impl::thread_wrapper(thread_startfunc_t func, void* arg){
 	guard = 0;
+	assert_interrupts_disabled();
 	cpu::interrupt_enable();
 	func(arg);
+	assert_interrupts_enabled();
 	cpu::interrupt_disable();
 	while(guard.exchange(1)){}
-	cpu::self()->impl_ptr->finished = true;
+	cpu::self()->impl_ptr->prev_thread = cpu::self()->impl_ptr->running_thread;
 	while (!cpu::self()->impl_ptr->running_thread->thread_join_queue.empty()) {
 		thread_ready_queue_push(cpu::self()->impl_ptr->running_thread->thread_join_queue.front(), true);
 		cpu::self()->impl_ptr->running_thread->thread_join_queue.pop();
 	}
-	setcontext(cpu::self()->impl_ptr->context);
+	swap(false, false);
 }
 
 /*

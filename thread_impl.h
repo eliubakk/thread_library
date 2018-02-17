@@ -12,6 +12,7 @@ class thread::impl{
 		ucontext_t* context;
 		std::queue<thread::impl*> thread_join_queue;
 		bool object_destroyed;
+		bool finished;
 		char *stack;
 		unsigned long id;
 

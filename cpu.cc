@@ -27,27 +27,13 @@ void cpu::init(thread_startfunc_t func, void *arg){
 	}
 	while(guard.exchange(1)){}
 	while(1){
-		if(!thread_ready_queue.empty()){
-			impl_ptr->running_thread = thread_ready_queue.front();
-			thread_ready_queue.pop();
-			swapcontext(impl_ptr->context, impl_ptr->running_thread->context);
-			assert_interrupts_disabled();
-			if(impl_ptr->finished){
-				delete[] impl_ptr->running_thread->stack;
-				delete impl_ptr->running_thread->context;
-				impl_ptr->running_thread->context = nullptr;
-				if(impl_ptr->running_thread->object_destroyed){
-					delete impl_ptr->running_thread;
-				}
-				impl_ptr->finished = false;
-			}
-			impl_ptr->running_thread = nullptr;
-		}else{
-			cpu_suspended_queue.push(this);
-			guard = 0;
-			cpu::interrupt_enable_suspend();
-			cpu::interrupt_disable();
-			while(guard.exchange(1)){}
-		}
+		swap(true, false);
+		cpu_suspended_queue.push(this);
+		guard = 0;
+		assert_interrupts_disabled();
+		cpu::interrupt_enable_suspend();
+		assert_interrupts_enabled(); 
+		cpu::interrupt_disable();
+		while(guard.exchange(1)){}
 	}
 }

@@ -17,20 +17,24 @@ mutex::~mutex(){
 }
 
 void mutex::lock(){
+    assert_interrupts_enabled(); 
     cpu::interrupt_disable();
     while(guard.exchange(1)){}
     try{
         impl_ptr->lock();
     }catch(bad_alloc& e){
         guard = 0;
+        assert_interrupts_disabled();
         cpu::interrupt_enable();
         throw e;
     }
     guard = 0;
+    assert_interrupts_disabled();
     cpu::interrupt_enable();
 }
 
 void mutex::unlock(){
+    assert_interrupts_enabled(); 
     cpu::interrupt_disable();
     while(guard.exchange(1)){}
     try{
@@ -38,15 +42,18 @@ void mutex::unlock(){
     }
     catch(bad_alloc& e){
         guard = 0;
+        assert_interrupts_disabled();
         cpu::interrupt_enable();
         throw e;
     }
     catch(runtime_error& e){
         guard = 0;
+        assert_interrupts_disabled();
         cpu::interrupt_enable();
         throw e;
     }
     guard = 0;
+    assert_interrupts_disabled();
     cpu::interrupt_enable();
 }
 
