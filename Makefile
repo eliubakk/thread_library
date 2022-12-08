@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 -Wall -Werror
+CXXFLAGS = -g -std=c++11 -Wall -Werror -fPIE
 DEBUGFLAGS = -DDEBUG
 
 LIBS = libcpu.o -ldl -pthread
